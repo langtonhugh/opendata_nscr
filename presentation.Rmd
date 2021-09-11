@@ -1,0 +1,67 @@
+---
+title: 'Open data'
+author: "Sam Langton"
+date: "Netherlands Institute for the Study of Crime and Law Enforcement" 
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: ["default", "my_theme.css"]
+    nature:
+      highlightStyle: github
+      highlightLines: true  
+      countIncrementalSlides: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Contents
+
+---
+
+## What is open data?
+
+- Availablity / access
+- Re-use and redistribution
+- Universal participation
+
+---
+
+## Thinking open
+
+- Strengths
+- Limitations
+- Being critical
+
+---
+
+## Accessing open data
+
+- Direct download
+- API
+- API wrapper
+- Scraping
+
+---
+
+## Practical
+
+---
+
+## Thanks for listening!
+
+<br>
+
+<br>
+
+<center>
+
+Samuel Langton <br> <br>
+
+slangton@nscr.nl <br> <br>
+
+www.samlangton.info <br> <br>
+
+@sh_langton <br> <br> <br>
+
