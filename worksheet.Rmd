@@ -1,3 +1,30 @@
+---
+title: "NSC-R workshop: open data"
+author: "Samuel Langton, Netherlands Institute for the Study of Crime and Law Enforcement"
+date: "13/09/2021"
+output:
+  html_document:
+    toc: true
+    toc_depth: 1
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, warning = F, message = F, comment = F)
+```
+
+## Key links
+
+- [GitHub](https://github.com/langtonhugh/opendata_nscr)
+- [Rijkswaterstaat](https://www.rijkswaterstaat.nl/apps/geoservices/geodata/dmc/nwb-wegen/geogegevens/shapefile)
+- [UK police data](https://data.police.uk/)
+- [Transport for London API](https://api.tfl.gov.uk/) and [documentation](http://content.tfl.gov.uk/example-api-requests.pdf)
+- [CBS](https://www.cbs.nl/en-gb/onze-diensten/open-data/statline-as-open-data/quick-start-guide)
+- [Drimble](https://drimble.nl/112/amsterdam/index_p)
+- [Open Street Map book chapter](https://osf.io/a96y7)
+
+## Setup
+
+```{r pacakges}
 # Load packages.
 library(readr)
 library(dplyr)
@@ -11,8 +38,31 @@ library(ggplot2)
 library(rvest)
 library(jsonlite)
 library(cbsodataR)
+```
 
-# Direct download (road network).
+## Direct download
+
+### Download file
+
+```{r rijksfake, eval = F}
+# Direct download.
+download.file(url = "https://www.rijkswaterstaat.nl/apps/geoservices/geodata/dmc/nwb-wegen/geogegevens/
+              shapefile/NWB-light/01-12-2020.zip",
+              destfile = "data/nwn_light.zip")
+
+# Unzip.
+unzip(zipfile = "data/nwn_light.zip", exdir = "data/nwn_light")
+
+# Load.
+nwb_sf <- st_read("data/nwn_light/01-12-2020/NWB-Light/nwb-light.shp")
+
+# Plot.
+ggplot(data = nwb_sf) +
+  geom_sf()
+```
+
+```{r rijks, echo = F, results=F}
+# Direct download.
 download.file(url = "https://www.rijkswaterstaat.nl/apps/geoservices/geodata/dmc/nwb-wegen/geogegevens/shapefile/NWB-light/01-12-2020.zip",
               destfile = "data/nwn_light.zip")
 
@@ -25,16 +75,28 @@ nwb_sf <- st_read("data/nwn_light/01-12-2020/NWB-Light/nwb-light.shp")
 # Plot.
 ggplot(data = nwb_sf) +
   geom_sf()
+```
 
+### Repository
+
+```{r git}
 # CSV from Github.
 btp_df <- read_csv("https://github.com/langtonhugh/osm_crim/raw/master/data/2020-01-btp-street.csv")
                           
-# Plot.
+# Make spatial.
 btp_sf <- btp_df %>% 
   st_as_sf(coords = c(x = "Longitude", y = "Latitude"), crs = 4326) %>% 
   st_transform(27700)
 
-# API (TFL).
+# Plot.
+ggplot(data = btp_sf) +
+  geom_sf()
+```
+
+## API
+
+```{r tfl}
+# API (Transport for London). URL-based.
 api_call <- fromJSON(readLines("https://api.tfl.gov.uk/line/jubilee/stoppoints"))
 
 tfl_jub_sf <- api_call %>% 
@@ -56,10 +118,11 @@ tfl_jub_sf <- tfl_buff_sf %>%
 # Plot.
 ggplot(data = tfl_jub_sf) +
   geom_sf(mapping = aes(colour = crimes), size = 4)
+```
 
-# API wrapper (osmdata).
-# API wrapper (cbsodataR).
+## API wrapper
 
+```{r cbs, out.width="1000px",results=F}
 # TOC.
 cbs_get_catalogs()
 
@@ -100,20 +163,25 @@ citpol_pd_df <- citpol_df %>%
                                  `Limburg`                = "RE10"))
 
 # Plot.
-ggplot() + 
-  theme_minimal() +
-  geom_ribbon(data = citpol_pd_df,
-              mapping = aes(x = perioden, group  = regio_naam,
-                            ymax = pol_quick_call_est+pol_quick_call_ci, ymin = pol_quick_call_est-pol_quick_call_ci),
+ggplot(data = citpol_pd_df,) + 
+  geom_ribbon(mapping = aes(x = perioden, group  = regio_naam,
+                            ymax = pol_quick_call_est+pol_quick_call_ci,
+                            ymin = pol_quick_call_est-pol_quick_call_ci),
               alpha = 0.1) +
-  geom_line(data = citpol_pd_df,
-            mapping = aes(x = perioden, y = pol_quick_call_est, group  = regio_naam)) +
+  geom_line(mapping = aes(x = perioden, y = pol_quick_call_est, group  = regio_naam)) +
   facet_wrap(~regio_naam, nrow = 2) +
-  labs(x = NULL, y = NULL, title = "Citizen satisfaction with police response times",
-       subtitle = "Percentage (strongly) agreeing with the statement: 'The police don't come quickly when you call them'") +
+  labs(x = NULL,
+       y = NULL,
+       title = "Citizen satisfaction with police response times",
+       subtitle = "Percentage (strongly) agree: 'The police don't come quickly when you call them'") +
+  theme_minimal() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5))
+```
 
-# Scraping (P2000).
+## Scraping
+
+```{r drimble}
+# Scraping (P2000 via Drimble).
 drimble_scrape <- read_html("https://drimble.nl/112/amsterdam/index_p") %>%   # read in page
   html_nodes(".content") %>%        # grab the content table
   html_table() %>%                  # convert to table
@@ -123,4 +191,6 @@ drimble_scrape <- read_html("https://drimble.nl/112/amsterdam/index_p") %>%   # 
 
 # Show.
 drimble_scrape
+```
+
 

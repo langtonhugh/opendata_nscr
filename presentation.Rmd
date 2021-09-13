@@ -1,5 +1,5 @@
 ---
-title: 'Open data'
+title: 'NSCR-R: Open data'
 author: "Sam Langton"
 date: "Netherlands Institute for the Study of Crime and Law Enforcement" 
 output:
@@ -18,34 +18,84 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ## Contents
 
+- Brief presentation
+- Practical
+  - Direct downloads
+  - API
+  - API wrapper
+  - Scraping
+- Q&A
+
 ---
 
 ## What is open data?
 
-- Availablity / access
+- Availablity and access
+  - Cost
+  - Machine-readable
 - Re-use and redistribution
+  - Free use
+  - Modification
+  - Redistribution
 - Universal participation
+  - (Non)commercial
+
+<br>
+
+<center>
+
+```{r okf, out.width="300px"}
+knitr::include_graphics("img/okf.png")
+```
+
+</center>
 
 ---
 
 ## Thinking open
 
 - Strengths
+  - Open research
+  - Accessibility
+  - Reproducibility
+  - Organic (sometimes)
 - Limitations
+  - Skills
+  - Licences
+  - Bias (generalisability)
 - Being critical
 
----
 
-## Accessing open data
+<center>
 
-- Direct download
-- API
-- API wrapper
-- Scraping
+```{r thinking, out.width="300px"}
+knitr::include_graphics("img/thinking.png")
+```
+
+</center>
+
 
 ---
 
 ## Practical
+
+- Direct downloads
+  - Rijkswaterstaat
+  - Repository
+- API
+  - Transport for London
+- API wrapper
+  - CBS
+- Scraping
+  - Drimble/P2000
+
+<center>
+
+```{r logo, out.width="200px"}
+knitr::include_graphics("img/r_logo.png")
+```
+
+</center>
 
 ---
 
