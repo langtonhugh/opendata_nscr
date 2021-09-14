@@ -96,9 +96,10 @@ ggplot(data = btp_sf) +
 ## API
 
 ```{r tfl}
-# API (Transport for London). URL-based.
+# Direct call to Transport for London API.
 api_call <- fromJSON(readLines("https://api.tfl.gov.uk/line/jubilee/stoppoints"))
 
+# Make spatial.
 tfl_jub_sf <- api_call %>% 
   select(commonName, lat, lon) %>% 
   st_as_sf(coords = c(x = "lon", y = "lat"), crs = 4326) %>% 
@@ -109,7 +110,8 @@ ggplot(data = tfl_jub_sf) +
   geom_sf()
 
 # Buffer.
-tfl_buff_sf <- st_buffer(tfl_jub_sf, dist = 50)
+tfl_buff_sf <- tfl_jub_sf %>% 
+  st_buffer(dist = 50)
 
 # Aggregate.
 tfl_jub_sf <- tfl_buff_sf %>% 
@@ -123,7 +125,7 @@ ggplot(data = tfl_jub_sf) +
 ## API wrapper
 
 ```{r cbs, out.width="1000px",results=F}
-# TOC.
+# TOC for CBS open data package.
 cbs_get_catalogs()
 
 # Search.
@@ -132,25 +134,25 @@ politie_df <- cbs_search("Politie")
 # Get one.
 citpol_df <- cbs_get_data("81928NED", Periods = has_substring("JJ"))
 
-# Get nationwide figure.
+# Get nationwide stats for satisfaction with response times (WIP!).
 citpol_pd_df <- citpol_df %>% 
-  clean_names() %>% 
-  zap_label() %>% 
-  mutate(regio_s = trimws(regio_s),
-         pd      = str_detect(regio_s, "RE")) %>% 
-  filter(pd == TRUE) %>% 
-  rename(pol_quick_call = komt_niet_snel_als_je_ze_roept_71) %>% 
-  select(marges, regio_s, perioden, pol_quick_call) %>% 
-  group_split(marges) %>%
-  bind_cols() %>%
-  clean_names() %>% 
-  rename(regio = regio_s_2, 
+  clean_names() %>%                                                 # Clean var names
+  zap_label() %>%                                                   # Remove SPSS names
+  mutate(regio_s = trimws(regio_s),                                 # Remove whitespace
+         pd      = str_detect(regio_s, "RE")) %>%                   # ID regions
+  filter(pd == TRUE) %>%                                            # Filter only regions
+  rename(pol_quick_call = komt_niet_snel_als_je_ze_roept_71) %>%    # Rename var
+  select(marges, regio_s, perioden, pol_quick_call) %>%             # Subset vars needed
+  group_split(marges) %>%                                           # Split stats up
+  bind_cols() %>%                                                   # Stick back
+  clean_names() %>%                                                 # Clean var names
+  rename(regio = regio_s_2,                                         # Renames
          perioden = perioden_3,
          pol_quick_call_est = pol_quick_call_8,
          pol_quick_call_ci = pol_quick_call_4) %>% 
-  select(regio, perioden, pol_quick_call_est, pol_quick_call_ci) %>% 
-  mutate(perioden   = str_remove_all(perioden, "JJ00"),
-         regio_naam = fct_recode(regio,
+  select(regio, perioden, pol_quick_call_est, pol_quick_call_ci) %>% # Subset new vars
+  mutate(perioden   = str_remove_all(perioden, "JJ00"),              # Keep only year 
+         regio_naam = fct_recode(regio,                              # Recode to names
                                  `Northern Netherlands`   = "RE01",
                                  `East Netherlands`       = "RE02",
                                  `Central Netherlands`    = "RE03",
@@ -173,7 +175,8 @@ ggplot(data = citpol_pd_df,) +
   labs(x = NULL,
        y = NULL,
        title = "Citizen satisfaction with police response times",
-       subtitle = "Percentage (strongly) agree: 'The police don't come quickly when you call them'") +
+       subtitle = "Percentage (strongly) agree: 'The police don't come quickly when you call them'",
+       caption = "No data available in 2018.") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5))
 ```

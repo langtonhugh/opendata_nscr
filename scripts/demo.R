@@ -12,6 +12,8 @@ library(rvest)
 library(jsonlite)
 library(cbsodataR)
 
+# Direct downloads =====================================================================
+
 # Direct download (road network).
 download.file(url = "https://www.rijkswaterstaat.nl/apps/geoservices/geodata/dmc/nwb-wegen/geogegevens/shapefile/NWB-light/01-12-2020.zip",
               destfile = "data/nwn_light.zip")
@@ -29,10 +31,16 @@ ggplot(data = nwb_sf) +
 # CSV from Github.
 btp_df <- read_csv("https://github.com/langtonhugh/osm_crim/raw/master/data/2020-01-btp-street.csv")
                           
-# Plot.
+# Make spatial.
 btp_sf <- btp_df %>% 
   st_as_sf(coords = c(x = "Longitude", y = "Latitude"), crs = 4326) %>% 
   st_transform(27700)
+
+# Plot.
+ggplot(data = btp_sf) +
+  geom_sf()
+
+# API direct =====================================================================
 
 # API (TFL).
 api_call <- fromJSON(readLines("https://api.tfl.gov.uk/line/jubilee/stoppoints"))
@@ -47,7 +55,8 @@ ggplot(data = tfl_jub_sf) +
   geom_sf()
 
 # Buffer.
-tfl_buff_sf <- st_buffer(tfl_jub_sf, dist = 50)
+tfl_buff_sf <- tfl_jub_sf %>% 
+  st_buffer(dist = 50)
 
 # Aggregate.
 tfl_jub_sf <- tfl_buff_sf %>% 
@@ -57,8 +66,7 @@ tfl_jub_sf <- tfl_buff_sf %>%
 ggplot(data = tfl_jub_sf) +
   geom_sf(mapping = aes(colour = crimes), size = 4)
 
-# API wrapper (osmdata).
-# API wrapper (cbsodataR).
+# API wrapper =====================================================================
 
 # TOC.
 cbs_get_catalogs()
@@ -69,7 +77,7 @@ politie_df <- cbs_search("Politie")
 # Get one.
 citpol_df <- cbs_get_data("81928NED", Periods = has_substring("JJ"))
 
-# Get nationwide figure.
+# Get nationwide stats for satisfaction with response times (WIP!).
 citpol_pd_df <- citpol_df %>% 
   clean_names() %>% 
   zap_label() %>% 
@@ -101,7 +109,6 @@ citpol_pd_df <- citpol_df %>%
 
 # Plot.
 ggplot() + 
-  theme_minimal() +
   geom_ribbon(data = citpol_pd_df,
               mapping = aes(x = perioden, group  = regio_naam,
                             ymax = pol_quick_call_est+pol_quick_call_ci, ymin = pol_quick_call_est-pol_quick_call_ci),
@@ -110,8 +117,12 @@ ggplot() +
             mapping = aes(x = perioden, y = pol_quick_call_est, group  = regio_naam)) +
   facet_wrap(~regio_naam, nrow = 2) +
   labs(x = NULL, y = NULL, title = "Citizen satisfaction with police response times",
-       subtitle = "Percentage (strongly) agreeing with the statement: 'The police don't come quickly when you call them'") +
+       subtitle = "Percentage (strongly) agree: 'The police don't come quickly when you call them'",
+       caption = "No data available in 2018.") +
+  theme_minimal() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5))
+
+# Scraping ========================================================================
 
 # Scraping (P2000).
 drimble_scrape <- read_html("https://drimble.nl/112/amsterdam/index_p") %>%   # read in page
