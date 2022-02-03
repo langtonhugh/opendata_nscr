@@ -20,7 +20,7 @@ knitr::opts_chunk$set(echo = T, warning = F, message = F, comment = F)
 - [Transport for London API](https://api.tfl.gov.uk/) and [documentation](http://content.tfl.gov.uk/example-api-requests.pdf)
 - [CBS](https://www.cbs.nl/en-gb/onze-diensten/open-data/statline-as-open-data/quick-start-guide)
 - [Drimble](https://drimble.nl/112/amsterdam/index_p)
-- [Open Street Map book chapter](https://osf.io/a96y7)
+- [Open Street Map book chapter](https://osf.io/a96y7) (external link)
 
 ## Setup
 
@@ -46,9 +46,7 @@ library(cbsodataR)
 
 ```{r rijksfake, eval = F}
 # Direct download.
-download.file(url = "https://www.rijkswaterstaat.nl/apps/geoservices/geodata/dmc/nwb-wegen/geogegevens/
-              shapefile/NWB-light/01-12-2020.zip",
-              destfile = "data/nwn_light.zip")
+download.file(url = "https://www.rijkswaterstaat.nl/apps/geoservices/geodata/dmc/nwb-wegen/geogegevens/shapefile/NWB-light/01-12-2021.zip", destfile = "data/nwn_light.zip")
 
 # Unzip.
 unzip(zipfile = "data/nwn_light.zip", exdir = "data/nwn_light")
@@ -56,8 +54,11 @@ unzip(zipfile = "data/nwn_light.zip", exdir = "data/nwn_light")
 # Load.
 nwb_sf <- st_read("data/nwn_light/01-12-2020/NWB-Light/nwb-light.shp")
 
+# Drop additional geometries so we can plot easily.
+nwb_sf <- st_zm(nwb_sf)
+
 # Plot.
-ggplot(data = nwb_sf) +
+ggplot(data = test) +
   geom_sf()
 ```
 
@@ -71,6 +72,9 @@ unzip(zipfile = "data/nwn_light.zip", exdir = "data/nwn_light")
 
 # Load.
 nwb_sf <- st_read("data/nwn_light/01-12-2020/NWB-Light/nwb-light.shp")
+
+# Drop additional geometries so we can plot easily.
+nwb_sf <- st_zm(nwb_sf)
 
 # Plot.
 ggplot(data = nwb_sf) +
@@ -183,10 +187,12 @@ ggplot(data = citpol_pd_df,) +
 
 ## Scraping
 
-```{r drimble}
+**Update on 3 February 2022: since Drimble changed their website layout, this code no longer works (the perils of open data and scraping!). I will be looking into this further. Please get in contact if you want to know more, or if you make any progress yourself!**
+
+```{r drimble, eval = F}
 # Scraping (P2000 via Drimble).
 drimble_scrape <- read_html("https://drimble.nl/112/amsterdam/index_p") %>%   # read in page
-  html_nodes(".content") %>%        # grab the content table
+  html_nodes(".emergency-timeline") %>%        # grab the content table
   html_table() %>%                  # convert to table
   pluck(1) %>%                      # grab relevant info
   row_to_names(row_number = 1) %>%  # create variable name
